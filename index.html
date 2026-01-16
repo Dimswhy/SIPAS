@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>SIPAS v2.2 - Sistem Arsip Dokumen</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="bg-slate-100">
+<div class="flex min-h-screen">
+
+<!-- SIDEBAR -->
+<aside class="w-72 bg-gradient-to-b from-blue-900 via-blue-800 to-indigo-900 text-white flex flex-col shadow-xl">
+  <div class="p-5 border-b border-white/10">
+    <h1 class="text-2xl font-bold tracking-wide">SIPAS <span class="text-sky-400">v2.2</span></h1>
+    <p class="text-xs text-blue-200">Sistem Arsip Dokumen</p>
+  </div>
+
+  <div class="p-5 flex items-center gap-3 border-b border-white/10">
+    <div class="w-12 h-12 rounded-full bg-sky-400 flex items-center justify-center text-blue-900 font-bold">ADM</div>
+    <div>
+      <p class="font-semibold">Kwarran Pule</p>
+      <p class="text-xs text-blue-200">Superadmin</p>
+    </div>
+  </div>
+
+  <nav class="flex-1 px-3 space-y-1 text-sm">
+    <button onclick="showPage('dashboard')" class="w-full px-4 py-3 rounded-lg hover:bg-white/10 text-left">Dashboard</button>
+
+    <button onclick="toggleDropdown()" class="w-full flex justify-between items-center px-4 py-3 rounded-lg hover:bg-white/10">
+      <span>View Dokumen</span><span>▾</span>
+    </button>
+
+    <div id="dropdownDokumen" class="hidden ml-4 space-y-1">
+      <a onclick="showBidang('Pimpinan')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Pimpinan</a>
+      <a onclick="showBidang('Bidang Pembinaan Anggota Muda')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Pembinaan Anggota Muda</a>
+      <a onclick="showBidang('Bidang Pembinaan Anggota Dewasa')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Pembinaan Anggota Dewasa</a>
+      <a onclick="showBidang('Bidang Pengabdian Masyarakat')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Pengabdian Masyarakat</a>
+      <a onclick="showBidang('Bidang Organisasi')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Organisasi</a>
+      <a onclick="showBidang('Bidang Sarana dan Prasarana')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Sarana & Prasarana</a>
+      <a onclick="showBidang('Dewan Kerja')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Dewan Kerja</a>
+    </div>
+
+    <button onclick="showPage('viewSK')" class="w-full px-4 py-3 rounded-lg hover:bg-white/10 text-left">
+      Arsip Surat Keputusan
+    </button>
+
+    <button onclick="showPage('tambahDokumen')" class="w-full px-4 py-3 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 mt-2 text-left">
+      Tambah Dokumen
+    </button>
+  </nav>
+
+  <div class="p-4 text-center text-xs text-blue-300 border-t border-white/10">© SIPAS Kwarran Pule</div>
+</aside>
+
+<!-- KONTEN -->
+<main class="flex-1 p-6 overflow-y-auto">
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+<h1 class="text-2xl font-bold mb-6 text-blue-800">Dashboard Sistem Arsip</h1>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="bg-gradient-to-r from-sky-500 to-blue-700 text-white rounded-xl p-5 shadow-lg">
+    <p class="text-sm">UNIT KERJA</p><h2 id="totalUnit" class="text-3xl font-bold">0</h2>
+  </div>
+  <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl p-5 shadow-lg">
+    <p class="text-sm">TOTAL ARSIP</p><h2 id="totalArsip" class="text-3xl font-bold">0</h2>
+  </div>
+  <div class="bg-gradient-to-r from-cyan-500 to-sky-600 text-white rounded-xl p-5 shadow-lg">
+    <p class="text-sm">SURAT MASUK</p><h2 id="totalMasuk" class="text-3xl font-bold">0</h2>
+  </div>
+  <div class="bg-gradient-to-r from-indigo-500 to-blue-800 text-white rounded-xl p-5 shadow-lg">
+    <p class="text-sm">SURAT KELUAR</p><h2 id="totalKeluar" class="text-3xl font-bold">0</h2>
+  </div>
+</div>
+<div class="bg-white rounded-xl shadow p-4">
+<h2 class="font-bold mb-3 text-blue-700">Statistik Unit Kerja</h2>
+<canvas id="chartBidang"></canvas>
+</div>
+</div>
+
+<!-- VIEW DOKUMEN -->
+<div id="viewDokumen" class="hidden">
+<h1 id="judulBidang" class="text-2xl font-bold mb-4 text-blue-800">View Dokumen</h1>
+<div class="bg-white rounded-lg shadow overflow-auto">
+<table class="w-full text-sm">
+<thead class="bg-blue-50">
+<tr>
+<th class="border p-2">No</th><th class="border p-2">Jenis</th><th class="border p-2">Kode</th>
+<th class="border p-2">Nomor</th><th class="border p-2">Tahun</th>
+<th class="border p-2">Nama</th><th class="border p-2">Tanggal</th>
+</tr>
+</thead>
+<tbody id="dataDokumen"></tbody>
+</table>
+</div>
+</div>
+
+<!-- VIEW SK -->
+<div id="viewSK" class="hidden">
+<h1 class="text-2xl font-bold mb-4 text-blue-800">Arsip Surat Keputusan</h1>
+<div class="bg-white rounded-lg shadow overflow-auto">
+<table class="w-full text-sm">
+<thead class="bg-blue-50">
+<tr>
+<th class="border p-2">No</th><th class="border p-2">Bidang</th><th class="border p-2">Kode</th>
+<th class="border p-2">Nomor</th><th class="border p-2">Tahun</th>
+<th class="border p-2">Nama</th><th class="border p-2">Tanggal</th>
+</tr>
+</thead>
+<tbody id="dataSK"></tbody>
+</table>
+</div>
+</div>
+
+<!-- TAMBAH -->
+<div id="tambahDokumen" class="hidden">
+<h1 class="text-2xl font-bold mb-4 text-blue-800">Tambah Dokumen</h1>
+<div class="bg-white p-6 rounded-xl shadow max-w-xl">
+<form id="formDokumen" class="space-y-3">
+<select id="bidang" required class="w-full border p-3 rounded-lg">
+<option value="">Pilih Bidang</option>
+<option>Pimpinan</option>
+<option>Bidang Pembinaan Anggota Muda</option>
+<option>Bidang Pembinaan Anggota Dewasa</option>
+<option>Bidang Pengabdian Masyarakat</option>
+<option>Bidang Organisasi</option>
+<option>Bidang Sarana dan Prasarana</option>
+<option>Dewan Kerja</option>
+</select>
+
+<select id="jenis" required class="w-full border p-3 rounded-lg">
+<option value="">Pilih Jenis Arsip</option>
+<option>Surat Masuk</option>
+<option>Surat Keluar</option>
+<option>Surat Keputusan</option>
+<option>Notulen</option>
+<option>Dokumen Lainnya</option>
+</select>
+
+<input id="kode" placeholder="Kode Arsip" required class="w-full border p-3 rounded-lg">
+<input id="nomor" placeholder="Nomor Dokumen" required class="w-full border p-3 rounded-lg">
+<input id="tahun" type="number" placeholder="Tahun" required class="w-full border p-3 rounded-lg">
+<input id="nama" placeholder="Nama Dokumen" required class="w-full border p-3 rounded-lg">
+<input type="date" id="tanggal" required class="w-full border p-3 rounded-lg">
+
+<button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg w-full font-semibold">
+Simpan Dokumen
+</button>
+</form>
+</div>
+</div>
+
+</main>
+</div>
+
+<script>
+let data = JSON.parse(localStorage.getItem("arsipDokumen")) || [];
+let chart, currentBidang="";
+
+function render(){
+dataDokumen.innerHTML="";
+data.filter(d=>!d.jenis.toLowerCase().includes("keputusan")).forEach((d,i)=>{
+dataDokumen.innerHTML+=`
+<tr data-bidang="${d.bidang}">
+<td class="border p-2 text-center">${i+1}</td>
+<td class="border p-2">${d.jenis}</td>
+<td class="border p-2 text-center">${d.kode}</td>
+<td class="border p-2 text-center">${d.nomor}</td>
+<td class="border p-2 text-center">${d.tahun}</td>
+<td class="border p-2">${d.nama}</td>
+<td class="border p-2 text-center">${d.tanggal}</td>
+</tr>`;
+});
+renderSK();
+renderDashboard();
+}
+
+function renderSK(){
+dataSK.innerHTML="";
+data.filter(d=>d.jenis.toLowerCase().includes("keputusan")).forEach((d,i)=>{
+dataSK.innerHTML+=`
+<tr>
+<td class="border p-2 text-center">${i+1}</td>
+<td class="border p-2">${d.bidang}</td>
+<td class="border p-2 text-center">${d.kode}</td>
+<td class="border p-2 text-center">${d.nomor}</td>
+<td class="border p-2 text-center">${d.tahun}</td>
+<td class="border p-2">${d.nama}</td>
+<td class="border p-2 text-center">${d.tanggal}</td>
+</tr>`;
+});
+}
+
+function renderDashboard(){
+let bidangCount={};
+data.forEach(d=>bidangCount[d.bidang]=(bidangCount[d.bidang]||0)+1);
+totalArsip.innerText=data.length;
+totalUnit.innerText=Object.keys(bidangCount).length;
+if(chart) chart.destroy();
+chart=new Chart(chartBidang,{type:"bar",data:{labels:Object.keys(bidangCount),datasets:[{label:"Jumlah Arsip",data:Object.values(bidangCount)}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
+}
+
+formDokumen.onsubmit=e=>{
+e.preventDefault();
+data.push({bidang:bidang.value,jenis:jenis.value,kode:kode.value,nomor:nomor.value,tahun:tahun.value,nama:nama.value,tanggal:tanggal.value});
+localStorage.setItem("arsipDokumen",JSON.stringify(data));
+formDokumen.reset(); render(); showPage("dashboard");
+}
+
+function showBidang(n){
+currentBidang=n; judulBidang.innerText="View Dokumen - "+n; showPage("viewDokumen");
+document.querySelectorAll("#dataDokumen tr").forEach(tr=>{
+tr.style.display=tr.dataset.bidang===n?"":"none";
+});
+}
+
+function toggleDropdown(){dropdownDokumen.classList.toggle("hidden");}
+
+function showPage(id){
+["dashboard","viewDokumen","tambahDokumen","viewSK"].forEach(p=>document.getElementById(p).classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
+}
+
+render();
+</script>
+</body>
+</html>
