@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>SIPAS v2.2 - Sistem Arsip Dokumen</title>
+<title>SIPAS v2.3 - Sistem Arsip Dokumen</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -13,7 +13,7 @@
 <!-- SIDEBAR -->
 <aside class="w-72 bg-gradient-to-b from-blue-900 via-blue-800 to-indigo-900 text-white flex flex-col shadow-xl">
   <div class="p-5 border-b border-white/10">
-    <h1 class="text-2xl font-bold tracking-wide">SIPAS <span class="text-sky-400">v2.2</span></h1>
+    <h1 class="text-2xl font-bold tracking-wide">SIPAS <span class="text-sky-400">v2.3</span></h1>
     <p class="text-xs text-blue-200">Sistem Arsip Dokumen</p>
   </div>
 
@@ -60,7 +60,8 @@
 <!-- DASHBOARD -->
 <div id="dashboard">
 <h1 class="text-2xl font-bold mb-6 text-blue-800">Dashboard Sistem Arsip</h1>
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
   <div class="bg-gradient-to-r from-sky-500 to-blue-700 text-white rounded-xl p-5 shadow-lg">
     <p class="text-sm">UNIT KERJA</p><h2 id="totalUnit" class="text-3xl font-bold">0</h2>
   </div>
@@ -73,7 +74,11 @@
   <div class="bg-gradient-to-r from-indigo-500 to-blue-800 text-white rounded-xl p-5 shadow-lg">
     <p class="text-sm">SURAT KELUAR</p><h2 id="totalKeluar" class="text-3xl font-bold">0</h2>
   </div>
+  <div class="bg-gradient-to-r from-purple-500 to-fuchsia-700 text-white rounded-xl p-5 shadow-lg">
+    <p class="text-sm">SURAT KEPUTUSAN</p><h2 id="totalSK" class="text-3xl font-bold">0</h2>
+  </div>
 </div>
+
 <div class="bg-white rounded-xl shadow p-4">
 <h2 class="font-bold mb-3 text-blue-700">Statistik Unit Kerja</h2>
 <canvas id="chartBidang"></canvas>
@@ -87,9 +92,14 @@
 <table class="w-full text-sm">
 <thead class="bg-blue-50">
 <tr>
-<th class="border p-2">No</th><th class="border p-2">Jenis</th><th class="border p-2">Kode</th>
-<th class="border p-2">Nomor</th><th class="border p-2">Tahun</th>
-<th class="border p-2">Nama</th><th class="border p-2">Tanggal</th>
+<th class="border p-2">No</th>
+<th class="border p-2">Jenis</th>
+<th class="border p-2">Kode</th>
+<th class="border p-2">Nomor</th>
+<th class="border p-2">Tahun</th>
+<th class="border p-2">Nama</th>
+<th class="border p-2">Tanggal</th>
+<th class="border p-2">Aksi</th>
 </tr>
 </thead>
 <tbody id="dataDokumen"></tbody>
@@ -104,9 +114,14 @@
 <table class="w-full text-sm">
 <thead class="bg-blue-50">
 <tr>
-<th class="border p-2">No</th><th class="border p-2">Bidang</th><th class="border p-2">Kode</th>
-<th class="border p-2">Nomor</th><th class="border p-2">Tahun</th>
-<th class="border p-2">Nama</th><th class="border p-2">Tanggal</th>
+<th class="border p-2">No</th>
+<th class="border p-2">Bidang</th>
+<th class="border p-2">Kode</th>
+<th class="border p-2">Nomor</th>
+<th class="border p-2">Tahun</th>
+<th class="border p-2">Nama</th>
+<th class="border p-2">Tanggal</th>
+<th class="border p-2">Aksi</th>
 </tr>
 </thead>
 <tbody id="dataSK"></tbody>
@@ -119,6 +134,7 @@
 <h1 class="text-2xl font-bold mb-4 text-blue-800">Tambah Dokumen</h1>
 <div class="bg-white p-6 rounded-xl shadow max-w-xl">
 <form id="formDokumen" class="space-y-3">
+
 <select id="bidang" required class="w-full border p-3 rounded-lg">
 <option value="">Pilih Bidang</option>
 <option>Pimpinan</option>
@@ -135,7 +151,7 @@
 <option>Surat Masuk</option>
 <option>Surat Keluar</option>
 <option>Surat Keputusan</option>
-<option>Notulen</option>
+<option>Surat Tugas</option>
 <option>Dokumen Lainnya</option>
 </select>
 
@@ -161,7 +177,10 @@ let chart, currentBidang="";
 
 function render(){
 dataDokumen.innerHTML="";
-data.filter(d=>!d.jenis.toLowerCase().includes("keputusan")).forEach((d,i)=>{
+data.map((d,i)=>({d,i}))
+.filter(x=>!x.d.jenis.toLowerCase().includes("keputusan"))
+.forEach(x=>{
+let d=x.d, i=x.i;
 dataDokumen.innerHTML+=`
 <tr data-bidang="${d.bidang}">
 <td class="border p-2 text-center">${i+1}</td>
@@ -171,6 +190,9 @@ dataDokumen.innerHTML+=`
 <td class="border p-2 text-center">${d.tahun}</td>
 <td class="border p-2">${d.nama}</td>
 <td class="border p-2 text-center">${d.tanggal}</td>
+<td class="border p-2 text-center">
+<button onclick="hapusData(${i})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Hapus</button>
+</td>
 </tr>`;
 });
 renderSK();
@@ -179,7 +201,10 @@ renderDashboard();
 
 function renderSK(){
 dataSK.innerHTML="";
-data.filter(d=>d.jenis.toLowerCase().includes("keputusan")).forEach((d,i)=>{
+data.map((d,i)=>({d,i}))
+.filter(x=>x.d.jenis.toLowerCase().includes("keputusan"))
+.forEach(x=>{
+let d=x.d, i=x.i;
 dataSK.innerHTML+=`
 <tr>
 <td class="border p-2 text-center">${i+1}</td>
@@ -189,17 +214,44 @@ dataSK.innerHTML+=`
 <td class="border p-2 text-center">${d.tahun}</td>
 <td class="border p-2">${d.nama}</td>
 <td class="border p-2 text-center">${d.tanggal}</td>
+<td class="border p-2 text-center">
+<button onclick="hapusData(${i})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Hapus</button>
+</td>
 </tr>`;
 });
 }
 
 function renderDashboard(){
-let bidangCount={};
-data.forEach(d=>bidangCount[d.bidang]=(bidangCount[d.bidang]||0)+1);
+let bidangCount = {};
+let masuk=0, keluar=0, sk=0;
+
+data.forEach(d=>{
+bidangCount[d.bidang]=(bidangCount[d.bidang]||0)+1;
+if(d.jenis.toLowerCase()=="surat masuk") masuk++;
+if(d.jenis.toLowerCase()=="surat keluar") keluar++;
+if(d.jenis.toLowerCase()=="surat keputusan") sk++;
+});
+
 totalArsip.innerText=data.length;
 totalUnit.innerText=Object.keys(bidangCount).length;
+totalMasuk.innerText=masuk;
+totalKeluar.innerText=keluar;
+totalSK.innerText=sk;
+
 if(chart) chart.destroy();
-chart=new Chart(chartBidang,{type:"bar",data:{labels:Object.keys(bidangCount),datasets:[{label:"Jumlah Arsip",data:Object.values(bidangCount)}]},options:{responsive:true,scales:{y:{beginAtZero:true}}}});
+chart=new Chart(chartBidang,{
+type:"bar",
+data:{labels:Object.keys(bidangCount),datasets:[{label:"Jumlah Arsip",data:Object.values(bidangCount)}]},
+options:{responsive:true,scales:{y:{beginAtZero:true}}}
+});
+}
+
+function hapusData(i){
+if(confirm("Yakin ingin menghapus dokumen ini?")){
+data.splice(i,1);
+localStorage.setItem("arsipDokumen",JSON.stringify(data));
+render();
+}
 }
 
 formDokumen.onsubmit=e=>{
@@ -217,7 +269,6 @@ tr.style.display=tr.dataset.bidang===n?"":"none";
 }
 
 function toggleDropdown(){dropdownDokumen.classList.toggle("hidden");}
-
 function showPage(id){
 ["dashboard","viewDokumen","tambahDokumen","viewSK"].forEach(p=>document.getElementById(p).classList.add("hidden"));
 document.getElementById(id).classList.remove("hidden");
