@@ -2,279 +2,194 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>SIPAS v2.3 - Sistem Arsip Dokumen</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>E-Arsip System Final</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+
+<style>
+body { overflow-x: hidden; background: #f4f6f9; }
+#wrapper { display: flex; width: 100%; min-height: 100vh; }
+
+#sidebar {
+    min-width: 250px;
+    max-width: 250px;
+    background: #343a40;
+    color: #fff;
+}
+
+#sidebar .nav-link { color: #ccc; }
+#sidebar .nav-link:hover,
+#sidebar .nav-link.active {
+    background: #495057;
+    color: #fff;
+}
+
+.content-area { width: 100%; padding: 20px; }
+
+.page { display: none; }
+.page.active { display: block; }
+
+.card { border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+.form-control { border-radius: 8px; }
+.btn-primary { border-radius: 8px; }
+</style>
 </head>
 
-<body class="bg-slate-100">
-<div class="flex min-h-screen">
+<body>
+
+<div id="wrapper">
 
 <!-- SIDEBAR -->
-<aside class="w-72 bg-gradient-to-b from-blue-900 via-blue-800 to-indigo-900 text-white flex flex-col shadow-xl">
-  <div class="p-5 border-b border-white/10">
-    <h1 class="text-2xl font-bold tracking-wide">SIPAS <span class="text-sky-400">v2.3</span></h1>
-    <p class="text-xs text-blue-200">Sistem Arsip Dokumen</p>
-  </div>
+<nav id="sidebar">
+    <div class="p-3"><h4>E-ARSIP</h4></div>
+    <ul class="nav flex-column">
+        <li class="nav-item"><a href="#" class="nav-link active" onclick="showPage('dashboard')">Dashboard</a></li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="collapse" href="#submenuDokumen">View Dokumen</a>
+            <div class="collapse" id="submenuDokumen">
+                <ul class="nav flex-column ml-3">
+                    <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('arsipDasar')">Arsip Dasar</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('arsipInternal')">Arsip Internal</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('arsipUmum')">Arsip Umum</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('suratKeputusan')">Surat Keputusan</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('arsipKeuangan')">Arsip Keuangan</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('binawa')">Bidang Binawa</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('binamuda')">Bidang Binamuda</a></li>
+                    <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('orgakum')">Bidang Orgakum</a></li>
+                </ul>
+            </div>
+        </li>
+        <li class="nav-item"><a href="#" class="nav-link" onclick="showPage('tambahArsip')">Tambah Arsip</a></li>
+    </ul>
+</nav>
 
-  <div class="p-5 flex items-center gap-3 border-b border-white/10">
-    <div class="w-12 h-12 rounded-full bg-sky-400 flex items-center justify-center text-blue-900 font-bold">ADM</div>
-    <div>
-      <p class="font-semibold">Kwarran Pule</p>
-      <p class="text-xs text-blue-200">Superadmin</p>
-    </div>
-  </div>
-
-  <nav class="flex-1 px-3 space-y-1 text-sm">
-    <button onclick="showPage('dashboard')" class="w-full px-4 py-3 rounded-lg hover:bg-white/10 text-left">Dashboard</button>
-
-    <button onclick="toggleDropdown()" class="w-full flex justify-between items-center px-4 py-3 rounded-lg hover:bg-white/10">
-      <span>View Dokumen</span><span>▾</span>
-    </button>
-
-    <div id="dropdownDokumen" class="hidden ml-4 space-y-1">
-      <a onclick="showBidang('Pimpinan')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Pimpinan</a>
-      <a onclick="showBidang('Bidang Pembinaan Anggota Muda')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Pembinaan Anggota Muda</a>
-      <a onclick="showBidang('Bidang Pembinaan Anggota Dewasa')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Pembinaan Anggota Dewasa</a>
-      <a onclick="showBidang('Bidang Pengabdian Masyarakat')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Pengabdian Masyarakat</a>
-      <a onclick="showBidang('Bidang Organisasi')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Organisasi</a>
-      <a onclick="showBidang('Bidang Sarana dan Prasarana')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Sarana & Prasarana</a>
-      <a onclick="showBidang('Dewan Kerja')" class="block px-4 py-2 rounded hover:bg-white/10 cursor-pointer">Dewan Kerja</a>
-    </div>
-
-    <button onclick="showPage('viewSK')" class="w-full px-4 py-3 rounded-lg hover:bg-white/10 text-left">
-      Arsip Surat Keputusan
-    </button>
-
-    <button onclick="showPage('tambahDokumen')" class="w-full px-4 py-3 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 mt-2 text-left">
-      Tambah Dokumen
-    </button>
-  </nav>
-
-  <div class="p-4 text-center text-xs text-blue-300 border-t border-white/10">© SIPAS Kwarran Pule</div>
-</aside>
-
-<!-- KONTEN -->
-<main class="flex-1 p-6 overflow-y-auto">
+<!-- CONTENT -->
+<div class="content-area">
 
 <!-- DASHBOARD -->
-<div id="dashboard">
-<h1 class="text-2xl font-bold mb-6 text-blue-800">Dashboard Sistem Arsip</h1>
-
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-  <div class="bg-gradient-to-r from-sky-500 to-blue-700 text-white rounded-xl p-5 shadow-lg">
-    <p class="text-sm">UNIT KERJA</p><h2 id="totalUnit" class="text-3xl font-bold">0</h2>
-  </div>
-  <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl p-5 shadow-lg">
-    <p class="text-sm">TOTAL ARSIP</p><h2 id="totalArsip" class="text-3xl font-bold">0</h2>
-  </div>
-  <div class="bg-gradient-to-r from-cyan-500 to-sky-600 text-white rounded-xl p-5 shadow-lg">
-    <p class="text-sm">SURAT MASUK</p><h2 id="totalMasuk" class="text-3xl font-bold">0</h2>
-  </div>
-  <div class="bg-gradient-to-r from-indigo-500 to-blue-800 text-white rounded-xl p-5 shadow-lg">
-    <p class="text-sm">SURAT KELUAR</p><h2 id="totalKeluar" class="text-3xl font-bold">0</h2>
-  </div>
-  <div class="bg-gradient-to-r from-purple-500 to-fuchsia-700 text-white rounded-xl p-5 shadow-lg">
-    <p class="text-sm">SURAT KEPUTUSAN</p><h2 id="totalSK" class="text-3xl font-bold">0</h2>
-  </div>
+<div id="dashboardPage" class="page active">
+    <h3 class="mb-4">Dashboard</h3>
+    <div class="row">
+        <div class="col-md-3 mb-3"><div class="card text-white bg-primary"><div class="card-body text-center"><h5>Total Arsip</h5><h2 id="totalArsip">200</h2></div></div></div>
+        <div class="col-md-3 mb-3"><div class="card text-white bg-success"><div class="card-body text-center"><h5>Arsip Dasar</h5><h2 id="totalDasar">45</h2></div></div></div>
+        <div class="col-md-3 mb-3"><div class="card text-white bg-warning"><div class="card-body text-center"><h5>Arsip Internal</h5><h2 id="totalInternal">60</h2></div></div></div>
+        <div class="col-md-3 mb-3"><div class="card text-white bg-info"><div class="card-body text-center"><h5>Arsip Umum</h5><h2 id="totalUmum">45</h2></div></div></div>
+        <div class="col-md-3 mb-3"><div class="card text-white bg-danger"><div class="card-body text-center"><h5>Surat Keputusan</h5><h2 id="totalSK">20</h2></div></div></div>
+        <div class="col-md-3 mb-3"><div class="card text-white bg-dark"><div class="card-body text-center"><h5>Arsip Keuangan</h5><h2 id="totalKeuangan">30</h2></div></div></div>
+    </div>
 </div>
 
-<div class="bg-white rounded-xl shadow p-4">
-<h2 class="font-bold mb-3 text-blue-700">Statistik Unit Kerja</h2>
-<canvas id="chartBidang"></canvas>
-</div>
-</div>
+<!-- Fungsi tabel arsip lengkap -->
+<div id="arsipDasarPage" class="page"><h3>Data Arsip Dasar</h3><div class="card p-3"><table id="tableDasar" class="table table-striped table-bordered w-100"><thead><tr><th>No</th><th>Kode Dokumen</th><th>Tahun</th><th>Nama Dokumen</th><th>Per Arsip</th><th>Tgl Upload</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+<div id="arsipInternalPage" class="page"><h3>Data Arsip Internal</h3><div class="card p-3"><table id="tableInternal" class="table table-striped table-bordered w-100"><thead><tr><th>No</th><th>Kode Dokumen</th><th>Tahun</th><th>Nama Dokumen</th><th>Per Arsip</th><th>Tgl Upload</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+<div id="arsipUmumPage" class="page"><h3>Data Arsip Umum</h3><div class="card p-3"><table id="tableUmum" class="table table-striped table-bordered w-100"><thead><tr><th>No</th><th>Kode Dokumen</th><th>Tahun</th><th>Nama Dokumen</th><th>Per Arsip</th><th>Tgl Upload</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+<div id="arsipKeuanganPage" class="page"><h3>Data Arsip Keuangan</h3><div class="card p-3"><table id="tableKeuangan" class="table table-striped table-bordered w-100"><thead><tr><th>No</th><th>Kode Dokumen</th><th>Tahun</th><th>Nama Dokumen</th><th>Jumlah (Rp)</th><th>Per Arsip</th><th>Tgl Upload</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+<div id="suratKeputusanPage" class="page"><h3>Data Surat Keputusan</h3><div class="card p-3"><table id="tableSK" class="table table-striped table-bordered w-100"><thead><tr><th>No</th><th>Kode Dokumen</th><th>Tahun</th><th>Nama Dokumen</th><th>Per Arsip</th><th>Tgl Upload</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+<div id="binawaPage" class="page"><h3>Data Bidang Binawa</h3><div class="card p-3"><table id="tableBinawa" class="table table-striped table-bordered w-100"><thead><tr><th>No</th><th>Kode Dokumen</th><th>Tahun</th><th>Nama Dokumen</th><th>Per Arsip</th><th>Tgl Upload</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+<div id="binamudaPage" class="page"><h3>Data Bidang Binamuda</h3><div class="card p-3"><table id="tableBinamuda" class="table table-striped table-bordered w-100"><thead><tr><th>No</th><th>Kode Dokumen</th><th>Tahun</th><th>Nama Dokumen</th><th>Per Arsip</th><th>Tgl Upload</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
+<div id="orgakumPage" class="page"><h3>Data Bidang Orgakum</h3><div class="card p-3"><table id="tableOrgakum" class="table table-striped table-bordered w-100"><thead><tr><th>No</th><th>Kode Dokumen</th><th>Tahun</th><th>Nama Dokumen</th><th>Per Arsip</th><th>Tgl Upload</th><th>Action</th></tr></thead><tbody></tbody></table></div></div>
 
-<!-- VIEW DOKUMEN -->
-<div id="viewDokumen" class="hidden">
-<h1 id="judulBidang" class="text-2xl font-bold mb-4 text-blue-800">View Dokumen</h1>
-<div class="bg-white rounded-lg shadow overflow-auto">
-<table class="w-full text-sm">
-<thead class="bg-blue-50">
-<tr>
-<th class="border p-2">No</th>
-<th class="border p-2">Jenis</th>
-<th class="border p-2">Kode</th>
-<th class="border p-2">Nomor</th>
-<th class="border p-2">Tahun</th>
-<th class="border p-2">Nama</th>
-<th class="border p-2">Tanggal</th>
-<th class="border p-2">Aksi</th>
-</tr>
-</thead>
-<tbody id="dataDokumen"></tbody>
-</table>
+<!-- Tambah Arsip -->
+<div id="tambahArsipPage" class="page">
+<h3 class="mb-4">Tambah Arsip Baru</h3>
+<div class="card p-4">
+<form id="formTambahArsip">
+<div class="form-row">
+<div class="form-group col-md-4"><label>Kode Dokumen</label><input type="text" class="form-control" name="kodeDokumen" required></div>
+<div class="form-group col-md-2"><label>Tahun</label><input type="number" class="form-control" name="tahun" required></div>
+<div class="form-group col-md-6"><label>Nama Dokumen</label><input type="text" class="form-control" name="namaDokumen" required></div>
 </div>
-</div>
-
-<!-- VIEW SK -->
-<div id="viewSK" class="hidden">
-<h1 class="text-2xl font-bold mb-4 text-blue-800">Arsip Surat Keputusan</h1>
-<div class="bg-white rounded-lg shadow overflow-auto">
-<table class="w-full text-sm">
-<thead class="bg-blue-50">
-<tr>
-<th class="border p-2">No</th>
-<th class="border p-2">Bidang</th>
-<th class="border p-2">Kode</th>
-<th class="border p-2">Nomor</th>
-<th class="border p-2">Tahun</th>
-<th class="border p-2">Nama</th>
-<th class="border p-2">Tanggal</th>
-<th class="border p-2">Aksi</th>
-</tr>
-</thead>
-<tbody id="dataSK"></tbody>
-</table>
-</div>
-</div>
-
-<!-- TAMBAH -->
-<div id="tambahDokumen" class="hidden">
-<h1 class="text-2xl font-bold mb-4 text-blue-800">Tambah Dokumen</h1>
-<div class="bg-white p-6 rounded-xl shadow max-w-xl">
-<form id="formDokumen" class="space-y-3">
-
-<select id="bidang" required class="w-full border p-3 rounded-lg">
-<option value="">Pilih Bidang</option>
-<option>Pimpinan</option>
-<option>Bidang Pembinaan Anggota Muda</option>
-<option>Bidang Pembinaan Anggota Dewasa</option>
-<option>Bidang Pengabdian Masyarakat</option>
-<option>Bidang Organisasi</option>
-<option>Bidang Sarana dan Prasarana</option>
-<option>Dewan Kerja</option>
+<div class="form-row">
+<div class="form-group col-md-4"><label>Bidang / Per Arsip</label>
+<select class="form-control" name="perArsip" required>
+<option value="">-- Pilih --</option>
+<option value="Arsip Dasar">Arsip Dasar</option>
+<option value="Arsip Internal">Arsip Internal</option>
+<option value="Arsip Umum">Arsip Umum</option>
+<option value="Surat Keputusan">Surat Keputusan</option>
+<option value="Arsip Keuangan">Arsip Keuangan</option>
+<option value="Binawa">Binawa</option>
+<option value="Binamuda - Siaga">Binamuda - Siaga</option>
+<option value="Binamuda - Penggalang">Binamuda - Penggalang</option>
+<option value="Binamuda - Penegak">Binamuda - Penegak</option>
+<option value="Orgakum">Orgakum</option>
 </select>
-
-<select id="jenis" required class="w-full border p-3 rounded-lg">
-<option value="">Pilih Jenis Arsip</option>
-<option>Surat Masuk</option>
-<option>Surat Keluar</option>
-<option>Surat Keputusan</option>
-<option>Surat Tugas</option>
-<option>Dokumen Lainnya</option>
-</select>
-
-<input id="kode" placeholder="Kode Arsip" required class="w-full border p-3 rounded-lg">
-<input id="nomor" placeholder="Nomor Dokumen" required class="w-full border p-3 rounded-lg">
-<input id="tahun" type="number" placeholder="Tahun" required class="w-full border p-3 rounded-lg">
-<input id="nama" placeholder="Nama Dokumen" required class="w-full border p-3 rounded-lg">
-<input type="date" id="tanggal" required class="w-full border p-3 rounded-lg">
-
-<button class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg w-full font-semibold">
-Simpan Dokumen
-</button>
+</div>
+<div class="form-group col-md-4"><label>Jumlah (Rp)</label><input type="number" class="form-control" name="jumlah"></div>
+<div class="form-group col-md-4"><label>Tanggal Upload</label><input type="date" class="form-control" name="tglUpload" required></div>
+</div>
+<div class="form-group"><label>File Dokumen</label><input type="file" class="form-control" name="fileDokumen" required></div>
+<button type="submit" class="btn btn-primary btn-block">Simpan Arsip</button>
 </form>
 </div>
 </div>
 
-</main>
+</div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+
 <script>
-let data = JSON.parse(localStorage.getItem("arsipDokumen")) || [];
-let chart, currentBidang="";
+$(document).ready(function(){
+    // DataTables semua tabel
+    var tables = {
+        "Arsip Dasar": $('#tableDasar').DataTable(),
+        "Arsip Internal": $('#tableInternal').DataTable(),
+        "Arsip Umum": $('#tableUmum').DataTable(),
+        "Surat Keputusan": $('#tableSK').DataTable(),
+        "Arsip Keuangan": $('#tableKeuangan').DataTable(),
+        "Binawa": $('#tableBinawa').DataTable(),
+        "Binamuda": $('#tableBinamuda').DataTable(),
+        "Orgakum": $('#tableOrgakum').DataTable()
+    };
 
-function render(){
-dataDokumen.innerHTML="";
-data.map((d,i)=>({d,i}))
-.filter(x=>!x.d.jenis.toLowerCase().includes("keputusan"))
-.forEach(x=>{
-let d=x.d, i=x.i;
-dataDokumen.innerHTML+=`
-<tr data-bidang="${d.bidang}">
-<td class="border p-2 text-center">${i+1}</td>
-<td class="border p-2">${d.jenis}</td>
-<td class="border p-2 text-center">${d.kode}</td>
-<td class="border p-2 text-center">${d.nomor}</td>
-<td class="border p-2 text-center">${d.tahun}</td>
-<td class="border p-2">${d.nama}</td>
-<td class="border p-2 text-center">${d.tanggal}</td>
-<td class="border p-2 text-center">
-<button onclick="hapusData(${i})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Hapus</button>
-</td>
-</tr>`;
-});
-renderSK();
-renderDashboard();
-}
+    // Tambah Arsip realtime
+    $('#formTambahArsip').on('submit', function(e){
+        e.preventDefault();
+        var kode = $('[name="kodeDokumen"]').val();
+        var tahun = $('[name="tahun"]').val();
+        var nama = $('[name="namaDokumen"]').val();
+        var perArsip = $('[name="perArsip"]').val();
+        var jumlah = $('[name="jumlah"]').val() || "-";
+        var tgl = $('[name="tglUpload"]').val();
 
-function renderSK(){
-dataSK.innerHTML="";
-data.map((d,i)=>({d,i}))
-.filter(x=>x.d.jenis.toLowerCase().includes("keputusan"))
-.forEach(x=>{
-let d=x.d, i=x.i;
-dataSK.innerHTML+=`
-<tr>
-<td class="border p-2 text-center">${i+1}</td>
-<td class="border p-2">${d.bidang}</td>
-<td class="border p-2 text-center">${d.kode}</td>
-<td class="border p-2 text-center">${d.nomor}</td>
-<td class="border p-2 text-center">${d.tahun}</td>
-<td class="border p-2">${d.nama}</td>
-<td class="border p-2 text-center">${d.tanggal}</td>
-<td class="border p-2 text-center">
-<button onclick="hapusData(${i})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs">Hapus</button>
-</td>
-</tr>`;
-});
-}
+        var targetTable = tables[perArsip.includes("Binamuda") ? "Binamuda" : perArsip];
+        if(targetTable){
+            var actionBtn = '<button class="btn btn-success btn-sm">Download</button>';
+            if(perArsip.includes("Binamuda")){
+                actionBtn = '<select class="form-control form-control-sm"><option>Siaga</option><option>Penggalang</option><option>Penegak</option></select>';
+            }
 
-function renderDashboard(){
-let bidangCount = {};
-let masuk=0, keluar=0, sk=0;
+            targetTable.row.add([
+                targetTable.data().count()+1,
+                kode,
+                tahun,
+                nama,
+                perArsip.includes("Binamuda") ? actionBtn : jumlah,
+                tgl,
+                actionBtn
+            ]).draw(false);
 
-data.forEach(d=>{
-bidangCount[d.bidang]=(bidangCount[d.bidang]||0)+1;
-if(d.jenis.toLowerCase()=="surat masuk") masuk++;
-if(d.jenis.toLowerCase()=="surat keluar") keluar++;
-if(d.jenis.toLowerCase()=="surat keputusan") sk++;
+            // Update dashboard
+            $('#totalArsip').text(parseInt($('#totalArsip').text())+1);
+
+            alert('Arsip berhasil ditambahkan!');
+            this.reset();
+        }else alert('Per Arsip tidak valid!');
+    });
 });
 
-totalArsip.innerText=data.length;
-totalUnit.innerText=Object.keys(bidangCount).length;
-totalMasuk.innerText=masuk;
-totalKeluar.innerText=keluar;
-totalSK.innerText=sk;
-
-if(chart) chart.destroy();
-chart=new Chart(chartBidang,{
-type:"bar",
-data:{labels:Object.keys(bidangCount),datasets:[{label:"Jumlah Arsip",data:Object.values(bidangCount)}]},
-options:{responsive:true,scales:{y:{beginAtZero:true}}}
-});
+function showPage(page){
+    $('.page').removeClass('active');
+    $('#' + page + 'Page').addClass('active');
+    if(page !== 'tambahArsip') $('#submenuDokumen').collapse('show'); else $('#submenuDokumen').collapse('hide');
 }
-
-function hapusData(i){
-if(confirm("Yakin ingin menghapus dokumen ini?")){
-data.splice(i,1);
-localStorage.setItem("arsipDokumen",JSON.stringify(data));
-render();
-}
-}
-
-formDokumen.onsubmit=e=>{
-e.preventDefault();
-data.push({bidang:bidang.value,jenis:jenis.value,kode:kode.value,nomor:nomor.value,tahun:tahun.value,nama:nama.value,tanggal:tanggal.value});
-localStorage.setItem("arsipDokumen",JSON.stringify(data));
-formDokumen.reset(); render(); showPage("dashboard");
-}
-
-function showBidang(n){
-currentBidang=n; judulBidang.innerText="View Dokumen - "+n; showPage("viewDokumen");
-document.querySelectorAll("#dataDokumen tr").forEach(tr=>{
-tr.style.display=tr.dataset.bidang===n?"":"none";
-});
-}
-
-function toggleDropdown(){dropdownDokumen.classList.toggle("hidden");}
-function showPage(id){
-["dashboard","viewDokumen","tambahDokumen","viewSK"].forEach(p=>document.getElementById(p).classList.add("hidden"));
-document.getElementById(id).classList.remove("hidden");
-}
-
-render();
 </script>
+
 </body>
 </html>
