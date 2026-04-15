@@ -1,257 +1,281 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<title>Dashboard Arsip</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIPRUMA V13 - Integrated System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
+        body { font-family: 'Source Sans Pro', sans-serif; background-color: #ECF0F5; overflow-x: hidden; }
+        
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        .sidebar { background-color: #222D32; width: 250px; min-height: 100vh; position: fixed; z-index: 50; }
+        .nav-item { color: #B8C7CE; border-left: 3px solid transparent; cursor: pointer; transition: 0.2s; padding: 12px 20px; }
+        .nav-item:hover, .nav-item.active { background-color: #1E282C; color: #FFFFFF; border-left-color: #3C8DBC; }
+        
+        /* Table Style */
+        .table-sipruma th { background: #367FA9; color: white; padding: 10px; font-size: 12px; border: 1px solid #2F668A; text-transform: uppercase; }
+        .table-sipruma td { padding: 8px; font-size: 13px; border: 1px solid #ddd; background: white; }
 
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
-
+        /* Print A4 Setup */
+        @media print {
+            .no-print { display: none !important; }
+            #modal-preview { position: absolute; left: 0; top: 0; background: white; display: block !important; }
+            .preview-paper { box-shadow: none; padding: 0; margin: 0; width: 100%; }
+        }
+    </style>
 </head>
+<body class="flex">
 
-<body class="bg-gray-100 flex">
+    <aside class="sidebar no-print">
+        <div class="h-14 bg-[#367FA9] flex items-center justify-center text-white font-bold text-xl uppercase tracking-widest">SIPRUMA</div>
+        <div class="p-4 bg-[#1A2226] flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">RP</div>
+            <div class="text-xs text-white">
+                <p class="font-bold">Kwartir Ranting Pule</p>
+                <p class="text-green-500"><i class="fa fa-circle text-[8px]"></i> Online</p>
+            </div>
+        </div>
+        <nav class="mt-4">
+            <p class="px-5 py-2 text-[10px] text-gray-500 font-bold uppercase">Main Menu</p>
+            <div onclick="showPage('dashboard', this)" class="nav-item active"><i class="fas fa-tachometer-alt w-6"></i> Dashboard</div>
+            <div onclick="showPage('sm', this)" class="nav-item"><i class="fas fa-envelope w-6"></i> Surat Masuk</div>
+            <div onclick="showPage('sk', this)" class="nav-item"><i class="fas fa-paper-plane w-6"></i> Surat Keluar</div>
+            <div onclick="showPage('skp', this)" class="nav-item"><i class="fas fa-gavel w-6 text-yellow-500"></i> Surat Keputusan</div>
+        </nav>
+    </aside>
 
-<!-- SIDEBAR -->
-<div class="w-64 bg-slate-800 text-white min-h-screen p-4">
-  <h2 class="text-xl font-bold mb-6">📁 E-Arsip</h2>
+    <main class="flex-1 ml-[250px] no-print">
+        <header class="h-14 bg-white border-b flex items-center justify-between px-6 shadow-sm">
+            <i class="fas fa-bars text-gray-600"></i>
+            <span class="text-xs font-bold text-gray-400">15 April 2026</span>
+        </header>
 
-  <ul class="space-y-2 text-sm">
-    <li onclick="goDashboard()" class="bg-blue-500 p-2 rounded cursor-pointer">Dashboard</li>
+        <div class="p-6">
+            <section id="dashboard" class="page active">
+                <h2 class="text-2xl font-light mb-6">Dashboard Statistik</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded shadow border-b-4 border-orange-500">
+                        <div class="flex justify-between items-center">
+                            <div><p class="text-xs font-bold text-gray-400">SURAT MASUK</p><h3 id="stat-sm" class="text-3xl font-bold">0</h3></div>
+                            <i class="fas fa-envelope text-4xl text-gray-100"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded shadow border-b-4 border-green-500">
+                        <div class="flex justify-between items-center">
+                            <div><p class="text-xs font-bold text-gray-400">SURAT KELUAR</p><h3 id="stat-sk" class="text-3xl font-bold">0</h3></div>
+                            <i class="fas fa-paper-plane text-4xl text-gray-100"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded shadow border-b-4 border-blue-500">
+                        <div class="flex justify-between items-center">
+                            <div><p class="text-xs font-bold text-gray-400">SURAT KEPUTUSAN</p><h3 id="stat-skp" class="text-3xl font-bold">0</h3></div>
+                            <i class="fas fa-gavel text-4xl text-gray-100"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded shadow border border-gray-200">
+                    <canvas id="mainChart" style="max-height: 300px;"></canvas>
+                </div>
+            </section>
 
-    <li>
-      <div onclick="toggleDropdown()" class="hover:bg-slate-700 p-2 rounded flex justify-between cursor-pointer">
-        Dokumen <span id="iconDropdown">▼</span>
-      </div>
+            <section id="data-page" class="page">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="page-title" class="text-2xl font-light">Data Surat</h2>
+                    <button onclick="openForm()" class="bg-[#3C8DBC] text-white px-4 py-2 rounded text-xs font-bold uppercase shadow-lg">
+                        <i class="fas fa-plus mr-2"></i>Tambah Data
+                    </button>
+                </div>
+                <div class="bg-white rounded shadow overflow-x-auto">
+                    <table class="w-full text-left table-sipruma">
+                        <thead><tr id="table-head"></tr></thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
 
-      <ul id="dropdownDokumen" class="ml-3 mt-1 hidden text-xs space-y-1">
-        <li onclick="filterDokumen('')" class="hover:bg-slate-700 p-2 rounded">Semua</li>
-        <li onclick="filterDokumen('masuk')" class="hover:bg-slate-700 p-2 rounded">Surat Masuk</li>
-        <li onclick="filterDokumen('keluar')" class="hover:bg-slate-700 p-2 rounded">Surat Keluar</li>
-        <li onclick="filterDokumen('keputusan')" class="hover:bg-slate-700 p-2 rounded">Surat Keputusan</li>
-      </ul>
-    </li>
-  </ul>
-</div>
-
-<!-- MAIN -->
-<div class="flex-1 p-6">
-
-  <!-- HEADER -->
-  <div class="flex justify-between mb-6">
-    <h1 class="text-xl font-semibold">Dashboard</h1>
-    <div class="bg-white px-4 py-2 rounded shadow text-sm">Admin</div>
-  </div>
-
-  <!-- CARD -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-    <div class="bg-blue-500 text-white p-4 rounded shadow">
-      <p id="totalArsip" class="text-lg font-bold">0</p>
-      <p>Total Dokumen</p>
+    <div id="modal-form" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-4xl rounded shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div id="modal-header" class="bg-[#3C8DBC] p-4 text-white font-bold uppercase text-sm">Input Data</div>
+            <div class="p-6 grid grid-cols-2 gap-6 overflow-y-auto">
+                <div class="space-y-3">
+                    <h4 class="text-blue-600 font-bold text-[10px] border-b uppercase">Detail Utama</h4>
+                    <div><label class="text-[10px] font-bold text-gray-500">NOMOR AGENDA / NO. SK</label><input id="in-agenda" type="text" class="w-full border p-2 text-sm rounded mt-1"></div>
+                    <div><label class="text-[10px] font-bold text-gray-500">NOMOR SURAT</label><input id="in-no" type="text" class="w-full border p-2 text-sm rounded mt-1"></div>
+                    <div><label class="text-[10px] font-bold text-gray-500">TANGGAL SURAT / TGL SK</label><input id="in-date-surat" type="date" class="w-full border p-2 text-sm rounded mt-1"></div>
+                    <div><label id="lbl-from" class="text-[10px] font-bold text-gray-500">ASAL SURAT</label><input id="in-from" type="text" class="w-full border p-2 text-sm rounded mt-1"></div>
+                </div>
+                <div class="space-y-3">
+                    <h4 class="text-orange-600 font-bold text-[10px] border-b uppercase">Detail Tambahan</h4>
+                    <div><label class="text-[10px] font-bold text-gray-500">SIFAT SURAT</label>
+                        <select id="in-sifat" class="w-full border p-2 text-sm rounded mt-1">
+                            <option>Biasa</option><option>Penting</option><option>Segera</option><option>Rahasia</option>
+                        </select>
+                    </div>
+                    <div><label class="text-[10px] font-bold text-gray-500">PERIHAL / KETERANGAN</label><textarea id="in-perihal" class="w-full border p-2 text-sm rounded mt-1" rows="2"></textarea></div>
+                    <div id="disposisi-only" class="p-3 bg-gray-50 rounded border">
+                        <label class="text-[10px] font-bold text-orange-600">DISPOSISI (KHUSUS SURAT MASUK)</label>
+                        <input id="in-to" type="text" placeholder="Diteruskan Kepada..." class="w-full border p-2 text-sm rounded mt-1 mb-2">
+                        <textarea id="in-harapan" placeholder="Harapan / Instruksi..." class="w-full border p-2 text-sm rounded" rows="2"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-100 p-4 flex justify-end space-x-3">
+                <button onclick="closeForm()" class="text-xs font-bold text-gray-400">BATAL</button>
+                <button onclick="saveData()" class="bg-[#00A65A] text-white px-8 py-2 rounded text-xs font-bold shadow">SIMPAN DATA</button>
+            </div>
+        </div>
     </div>
 
-    <div class="bg-green-500 text-white p-4 rounded shadow">
-      <p>-</p><p>Total Size</p>
+    <div id="modal-preview" class="fixed inset-0 bg-black/90 z-[200] hidden flex flex-col items-center overflow-y-auto p-4 md:p-10">
+        <div class="w-full max-w-[210mm] flex justify-between mb-4 no-print">
+            <button onclick="closePreview()" class="bg-white/20 text-white px-4 py-2 rounded text-xs font-bold uppercase hover:bg-white/30">Tutup</button>
+            <button onclick="window.print()" class="bg-green-600 text-white px-6 py-2 rounded text-xs font-bold uppercase shadow-xl"><i class="fas fa-print mr-2"></i>Cetak A4 (Isi 2)</button>
+        </div>
+        <div id="printable-area" class="bg-white w-[210mm] min-h-[297mm] p-[10mm] shadow-2xl preview-paper">
+            <div id="box-1"></div>
+            <div class="no-print border-t border-dashed border-gray-300 my-10 relative flex justify-center">
+                <span class="absolute -top-3 bg-gray-100 text-[10px] px-2 text-gray-400 uppercase">Garis Potong Tengah A4</span>
+            </div>
+            <div id="box-2"></div>
+        </div>
     </div>
 
-    <div class="bg-orange-500 text-white p-4 rounded shadow">
-      <p>3</p><p>Total Kategori</p>
-    </div>
+    <script>
+        let currentMode = 'dashboard';
+        let db = JSON.parse(localStorage.getItem('sipruma_v13_db')) || { sm: [], sk: [], skp: [] };
+        let myChart;
 
-    <div class="bg-red-500 text-white p-4 rounded shadow">
-      <p class="font-bold">Tambah Arsip</p>
-      <p class="text-sm">Upload dokumen</p>
-    </div>
-  </div>
+        function showPage(pageId, btn) {
+            currentMode = pageId;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            
+            if(pageId === 'dashboard') {
+                document.getElementById('dashboard').classList.add('active');
+                renderDashboard();
+            } else {
+                document.getElementById('data-page').classList.add('active');
+                updateUI();
+                renderTable();
+            }
+            if(btn) btn.classList.add('active');
+        }
 
-  <!-- CONTENT -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        function updateUI() {
+            const labels = { sm: 'Surat Masuk', sk: 'Surat Keluar', skp: 'Surat Keputusan (SK)' };
+            const fromLabels = { sm: 'Asal Surat', sk: 'Tujuan Surat', skp: 'Penerima SK / Instansi' };
+            document.getElementById('page-title').innerText = labels[currentMode];
+            document.getElementById('modal-header').innerText = 'Input ' + labels[currentMode];
+            document.getElementById('lbl-from').innerText = fromLabels[currentMode];
+            document.getElementById('disposisi-only').style.display = (currentMode === 'sm') ? 'block' : 'none';
+            
+            const head = document.getElementById('table-head');
+            head.innerHTML = `
+                <th class="text-center">No</th>
+                <th>Agenda/SK</th>
+                <th>${fromLabels[currentMode]}</th>
+                <th>Nomor</th>
+                <th>Perihal</th>
+                <th class="text-center">Opsi</th>
+            `;
+        }
 
-    <!-- TABLE -->
-    <div class="md:col-span-2 bg-white p-4 rounded shadow">
+        function openForm() { document.getElementById('modal-form').classList.remove('hidden'); }
+        function closeForm() { document.getElementById('modal-form').classList.add('hidden'); }
 
-      <h2 id="judulDokumen" class="font-semibold mb-3">Dokumen</h2>
+        function saveData() {
+            const data = {
+                id: Date.now(),
+                agenda: document.getElementById('in-agenda').value,
+                no: document.getElementById('in-no').value,
+                date_s: document.getElementById('in-date-surat').value,
+                from: document.getElementById('in-from').value,
+                sifat: document.getElementById('in-sifat').value,
+                perihal: document.getElementById('in-perihal').value,
+                to: document.getElementById('in-to').value,
+                harapan: document.getElementById('in-harapan').value
+            };
+            db[currentMode].push(data);
+            localStorage.setItem('sipruma_v13_db', JSON.stringify(db));
+            closeForm(); renderTable(); renderDashboard();
+        }
 
-      <form id="formDokumen" class="flex gap-2 mb-3 text-sm flex-wrap">
-        <input id="nama" placeholder="Nama" class="border p-1 rounded">
-        <input id="jenis" placeholder="Jenis" class="border p-1 rounded">
-        <input id="fileDokumen" type="file" class="border p-1 rounded">
-        <button class="bg-blue-500 text-white px-3 rounded">Simpan</button>
-      </form>
+        function renderTable() {
+            const body = document.getElementById('table-body');
+            body.innerHTML = db[currentMode].map((x, i) => `
+                <tr class="hover:bg-gray-50">
+                    <td class="text-center font-bold text-gray-400 border">${i+1}</td>
+                    <td class="font-bold border">${x.agenda}</td>
+                    <td class="border">${x.from}</td>
+                    <td class="text-blue-600 border">${x.no}</td>
+                    <td class="border text-xs text-gray-500">${x.perihal}</td>
+                    <td class="text-center border space-x-1">
+                        ${currentMode === 'sm' ? `<button onclick="viewDisposisi(${x.id})" class="bg-orange-500 text-white p-1.5 rounded" title="Lihat Disposisi"><i class="fas fa-eye"></i></button>` : ''}
+                        <button onclick="deleteData(${x.id})" class="bg-red-100 text-red-500 p-1.5 rounded" title="Hapus"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('') || '<tr><td colspan="6" class="p-10 text-center text-gray-300 italic">Belum ada data.</td></tr>';
+        }
 
-      <div class="flex justify-between mb-3">
-        <select id="filterJenis" class="border p-1 rounded text-sm">
-          <option value="">Semua</option>
-          <option value="masuk">Surat Masuk</option>
-          <option value="keluar">Surat Keluar</option>
-          <option value="keputusan">Surat Keputusan</option>
-        </select>
+        function viewDisposisi(id) {
+            const x = db.sm.find(d => d.id === id);
+            const content = `
+                <div class="border-[2px] border-black p-6 mb-4 text-black h-[125mm]">
+                    <div class="text-center border-b-2 border-black pb-2 mb-4">
+                        <h2 class="text-xl font-bold uppercase">Lembar Disposisi</h2>
+                        <p class="text-xs uppercase font-bold">Instansi Pemerintah Sipruma V2.0</p>
+                    </div>
+                    <table class="w-full border-collapse border border-black text-xs">
+                        <tr><td class="border border-black p-2 w-1/2"><strong>SURAT DARI:</strong><br>${x.from}</td><td class="border border-black p-2"><strong>DITERIMA TGL:</strong><br>${x.date_s}</td></tr>
+                        <tr><td class="border border-black p-2"><strong>NOMOR SURAT:</strong><br>${x.no}</td><td class="border border-black p-2"><strong>NO. AGENDA:</strong><br>${x.agenda}</td></tr>
+                        <tr><td class="border border-black p-2"><strong>TGL SURAT:</strong><br>${x.date_s}</td><td class="border border-black p-2"><strong>SIFAT:</strong><br>[ ${x.sifat} ]</td></tr>
+                        <tr><td colspan="2" class="border border-black p-2 h-16"><strong>PERIHAL:</strong><br>${x.perihal}</td></tr>
+                        <tr>
+                            <td class="border border-black p-2 h-40 align-top"><strong>DITERUSKAN KEPADA:</strong><br><br><span class="text-sm font-bold underline uppercase">${x.to}</span></td>
+                            <td class="border border-black p-2 h-40 align-top"><strong>HARAPAN / FAHAMKAN:</strong><br><br><div class="italic">${x.harapan}</div></td>
+                        </tr>
+                    </table>
+                    <div class="mt-6 flex justify-between text-[10px] font-bold">
+                        <div class="text-center">Penerima,<br><br><br>( ........................ )</div>
+                        <div class="text-center text-xs uppercase">Mengetahui,<br>Pimpinan<br><br><br>( Raja Putra Media )</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('box-1').innerHTML = content;
+            document.getElementById('box-2').innerHTML = content;
+            document.getElementById('modal-preview').classList.remove('hidden');
+        }
 
-        <input id="searchInput" placeholder="Search..." class="border p-1 rounded text-sm">
-      </div>
+        function closePreview() { document.getElementById('modal-preview').classList.add('hidden'); }
+        function deleteData(id) { if(confirm('Hapus?')) { db[currentMode] = db[currentMode].filter(x => x.id !== id); localStorage.setItem('sipruma_v13_db', JSON.stringify(db)); renderTable(); renderDashboard(); } }
 
-      <table class="w-full text-sm">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="p-2">No</th>
-            <th class="p-2">Nama</th>
-            <th class="p-2">Jenis</th>
-            <th class="p-2">File</th>
-            <th class="p-2">Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="dataDokumen"></tbody>
-      </table>
-    </div>
+        function renderDashboard() {
+            document.getElementById('stat-sm').innerText = db.sm.length;
+            document.getElementById('stat-sk').innerText = db.sk.length;
+            document.getElementById('stat-skp').innerText = db.skp.length;
+            
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            if(myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Surat Masuk', 'Surat Keluar', 'Arsip SK'],
+                    datasets: [{ label: 'Jumlah Dokumen', data: [db.sm.length, db.sk.length, db.skp.length], backgroundColor: ['#F39C12', '#00A65A', '#3C8DBC'] }]
+                },
+                options: { plugins: { legend: { display: false } } }
+            });
+        }
 
-    <!-- CHART -->
-    <div class="bg-white p-4 rounded shadow">
-      <h2 class="font-semibold mb-3">Kategori</h2>
-      <canvas id="chartKategori"></canvas>
-    </div>
-
-  </div>
-</div>
-
-<script>
-
-/* FIREBASE CONFIG */
-const firebaseConfig = {
-  apiKey: "ISI_API_KEY",
-  authDomain: "ISI_PROJECT.firebaseapp.com",
-  databaseURL: "https://ISI_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "ISI_PROJECT"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-let data = [];
-let chart;
-
-/* REALTIME LISTENER */
-db.ref("arsip").on("value", (snap)=>{
-  let val = snap.val();
-  data = val ? Object.entries(val) : [];
-  render();
-});
-
-/* DROPDOWN */
-function toggleDropdown(){
-  dropdownDokumen.classList.toggle("hidden");
-  iconDropdown.innerText = iconDropdown.innerText==="▼"?"▲":"▼";
-}
-
-/* FILTER */
-function filterDokumen(jenis){
-  filterJenis.value = jenis;
-  judulDokumen.scrollIntoView({behavior:"smooth"});
-  render();
-}
-
-/* NAV */
-function goDashboard(){
-  window.scrollTo({top:0,behavior:"smooth"});
-}
-
-/* RENDER */
-function render(){
-  let tbody = dataDokumen;
-  tbody.innerHTML = "";
-
-  let keyword = searchInput.value.toLowerCase();
-  let filter = filterJenis.value;
-
-  let kategori = {Masuk:0,Keluar:0,SK:0};
-
-  data.forEach(([key,d],i)=>{
-    let jenis = (d.jenis||"").toLowerCase();
-    let nama = (d.nama||"").toLowerCase();
-
-    if(!(nama.includes(keyword)||jenis.includes(keyword))) return;
-    if(filter && !jenis.includes(filter)) return;
-
-    if(jenis.includes("masuk")) kategori.Masuk++;
-    else if(jenis.includes("keluar")) kategori.Keluar++;
-    else kategori.SK++;
-
-    tbody.innerHTML += `
-    <tr class="border-t text-center">
-      <td class="p-2">${i+1}</td>
-      <td class="p-2">${d.nama}</td>
-      <td class="p-2">${d.jenis}</td>
-      <td class="p-2">
-        ${d.file ? `<button onclick="lihatFile('${d.file}')" class="bg-blue-500 text-white px-2 py-1 rounded text-xs">Lihat</button>` : "-"}
-      </td>
-      <td class="p-2">
-        <button onclick="hapus('${key}')" class="bg-red-500 text-white px-2 py-1 rounded text-xs">Hapus</button>
-      </td>
-    </tr>`;
-  });
-
-  totalArsip.innerText = data.length;
-  updateChart(kategori);
-}
-
-/* CHART */
-function updateChart(k){
-  if(chart) chart.destroy();
-  chart = new Chart(chartKategori,{
-    type:"doughnut",
-    data:{labels:["Masuk","Keluar","SK"],datasets:[{data:[k.Masuk,k.Keluar,k.SK]}]},
-    options:{plugins:{legend:{position:"bottom"}}}
-  });
-}
-
-/* TAMBAH DATA */
-formDokumen.onsubmit = function(e){
-  e.preventDefault();
-
-  let fileInput = fileDokumen;
-
-  if(fileInput.files.length > 0){
-    let reader = new FileReader();
-
-    reader.onload = function(e){
-      db.ref("arsip").push({
-        nama:nama.value,
-        jenis:jenis.value,
-        file:e.target.result
-      });
-      formDokumen.reset();
-    };
-
-    reader.readAsDataURL(fileInput.files[0]);
-    return;
-  }
-
-  db.ref("arsip").push({
-    nama:nama.value,
-    jenis:jenis.value,
-    file:""
-  });
-
-  formDokumen.reset();
-};
-
-/* HAPUS */
-function hapus(key){
-  db.ref("arsip/"+key).remove();
-}
-
-/* LIHAT FILE */
-function lihatFile(file){
-  window.open(file,"_blank");
-}
-
-/* EVENT */
-searchInput.addEventListener("keyup",render);
-filterJenis.addEventListener("change",render);
-
-</script>
-
+        window.onload = renderDashboard;
+    </script>
 </body>
 </html>
